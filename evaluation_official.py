@@ -1,14 +1,11 @@
 # coding=utf-8
-from __future__ import division
-from __future__ import print_function
-
 import datetime
 import json
 import sys
 import time
 from collections import defaultdict
-
 import numpy as np
+
 
 # the higher scores, the better performance
 def evaluate_each_phase(predictions, answers):
@@ -45,6 +42,7 @@ def evaluate_each_phase(predictions, answers):
     hitrate_50_half /= num_cases_half
     return np.array([ndcg_50_full, ndcg_50_half,
                      hitrate_50_full, hitrate_50_half], dtype=np.float32)
+
 
 # submit_fname is the path to the file submitted by the participants.
 # debias_track_answer.csv is the standard answer, which is not released.

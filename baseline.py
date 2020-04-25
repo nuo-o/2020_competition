@@ -5,14 +5,18 @@ import pandas as pd
 from tqdm import tqdm
 from collections import defaultdict
 import math
+import numpy as np
 
 
 def get_sim_item(df, user_col, item_col, use_iif=False):
-    user_item_ = df.groupby(user_col)[item_col].agg(set).reset_index()
+    # collect user clicked history
+    # 'user_id', 'item_id', 'time'
+    user_item_ = df.groupby(user_col)[item_col].agg(lambda x:set(x)).reset_index()
     user_item_dict = dict(zip(user_item_[user_col], user_item_[item_col]))
 
     sim_item = {}
     item_cnt = defaultdict(int)
+    # calculate item cf
     for user, items in tqdm(user_item_dict.items()):
         for i in items:
             item_cnt[i] += 1
@@ -56,6 +60,7 @@ def get_predict(df, pred_col, top_fill):
     df = df.append(fill_df)
     df.sort_values(pred_col, ascending=False, inplace=True)
     df = df.drop_duplicates(subset=['user_id', 'item_id'], keep='first')
+    df.index = np.arange(df.shape[0])
     df['rank'] = df.groupby('user_id')[pred_col].rank(method='first', ascending=False)
     df = df[df['rank'] <= 50]
     df = df.groupby('user_id')['item_id'].apply(lambda x: ','.join([str(i) for i in x])).str.split(',',
@@ -74,7 +79,7 @@ if __name__ == "__main__":
         print('phase:', c)
         click_train = pd.read_csv(train_path + '/underexpose_train_click-{}.csv'.format(c), header=None,
                                   names=['user_id', 'item_id', 'time'])
-        click_test = pd.read_csv(test_path + '/underexpose_test_click-{}.csv'.format(c), header=None,
+        click_test = pd.read_csv(test_path + '/underexpose_test_click-{}/underexpose_test_click-{}.csv'.format(c, c), header=None,
                                  names=['user_id', 'item_id', 'time'])
 
         all_click = click_train.append(click_test)
